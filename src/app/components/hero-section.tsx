@@ -23,7 +23,7 @@ export function HeroSection() {
 
           {/* Profile Info */}
           <div className="flex-1 text-center md:text-left">
-            <div className="inline-block px-4 py-2 bg-primary/10 border-2 border-primary rounded-full mb-6">
+            <div className="inline-block px-4 py-2 bg-foreground border-2 border-primary rounded-full mb-6">
               <span className="text-primary">@이솔</span>
             </div>
             
