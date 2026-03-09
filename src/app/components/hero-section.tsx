@@ -36,13 +36,16 @@ export function HeroSection() {
             </p>
 
             <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-              <div className="px-6 py-3 bg-primary text-primary-foreground rounded-lg border-2 border-foreground">
+              <div className="px-6 py-3 rounded-lg border-2 border-foreground shadow-md
+              bg-primary text-primary-foreground">
                 PM
               </div>
-              <div className="px-6 py-3 bg-accent text-accent-foreground rounded-lg border-2 border-foreground">
+              <div className="px-6 py-3 rounded-lg border-2 border-foreground shadow-md
+              bg-accent text-accent-foreground">
                 Branding
               </div>
-              <div className="px-6 py-3 bg-secondary text-secondary-foreground rounded-lg border-2 border-foreground">
+              <div className="px-6 py-3 rounded-lg border-2 border-foreground shadow-md
+              bg-secondary text-secondary-foreground">
                 Developer
               </div>
             </div>

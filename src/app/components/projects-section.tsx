@@ -183,7 +183,8 @@ export function ProjectsSection({ initialProjects }: ProjectsSectionProps) {
                     {/* Three-dot menu button */}
                     <button
                       onClick={() => toggleMenu(item.id)}
-                      className="absolute top-4 right-4 p-2 bg-background/90 rounded-full border-2 border-foreground hover:scale-110 transition-transform z-10"
+                      className="absolute top-4 right-4 p-2 bg-card rounded-full border-2 border-foreground
+                        shadow-md hover:scale-110 transition-transform z-10"
                       aria-label="Menu"
                     >
                       <MoreVertical className="w-5 h-5" />
@@ -211,7 +212,10 @@ export function ProjectsSection({ initialProjects }: ProjectsSectionProps) {
             <>
               <button
                 onClick={() => paginate(-1)}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-primary text-primary-foreground p-3 rounded-full border-2 border-foreground hover:scale-110 transition-transform shadow-lg"
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10
+                  bg-card text-foreground p-3 rounded-full border-2 border-foreground
+                  shadow-xl hover:bg-primary hover:text-primary-foreground
+                  hover:scale-110 transition-all"
                 aria-label="이전"
               >
                 <ChevronLeft className="w-6 h-6" />
@@ -219,7 +223,10 @@ export function ProjectsSection({ initialProjects }: ProjectsSectionProps) {
 
               <button
                 onClick={() => paginate(1)}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-primary text-primary-foreground p-3 rounded-full border-2 border-foreground hover:scale-110 transition-transform shadow-lg"
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10
+                  bg-card text-foreground p-3 rounded-full border-2 border-foreground
+                  shadow-xl hover:bg-primary hover:text-primary-foreground
+                  hover:scale-110 transition-all"
                 aria-label="다음"
               >
                 <ChevronRight className="w-6 h-6" />
@@ -238,8 +245,10 @@ export function ProjectsSection({ initialProjects }: ProjectsSectionProps) {
                   setDirection(index > currentPage ? 1 : -1);
                   setCurrentPage(index);
                 }}
-                className={`w-3 h-3 rounded-full border-2 border-foreground transition-all ${
-                  index === currentPage ? 'bg-primary scale-125' : 'bg-muted'
+                className={`w-3 h-3 rounded-full transition-all ${
+                  index === currentPage
+                    ? 'bg-secondary border-2 border-secondary scale-125'
+                    : 'bg-muted border border-foreground/40'
                 }`}
                 aria-label={`페이지 ${index + 1}`}
               />
