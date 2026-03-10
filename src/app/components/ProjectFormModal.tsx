@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/app/components/ui/button";
 import { Calendar } from "@/app/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
-import { getSupabaseClient } from "@/lib/supabaseClient";
 
 type ProjectStatus = Project["status"];
 
@@ -122,47 +121,23 @@ export function ProjectFormModal({
     }
 
     try {
-      const supabase = getSupabaseClient();
-
-      // 1) 이미지 파일이 선택되어 있으면 먼저 업로드해서 public URL 확보
-      let finalImageUrl: string | undefined =
-        imageUrl.trim() !== "" ? imageUrl.trim() : undefined;
-
+      const formData = new FormData();
+      formData.append("name", name.trim());
+      formData.append("description", description.trim());
+      formData.append("startDate", startDate.toISOString().split("T")[0]);
+      formData.append("endDate", endDate ? endDate.toISOString().split("T")[0] : "");
+      formData.append("status", status);
       if (imageFile) {
-        const ext = imageFile.name.split(".").pop() ?? "jpg";
-        const uniqueName = `${crypto.randomUUID()}.${ext}`;
-        const filePath = `projects/${uniqueName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("project-images")
-          .upload(filePath, imageFile, {
-            cacheControl: "3600",
-            upsert: false,
-          });
-
-        if (uploadError) {
-          throw new Error("이미지 업로드에 실패했습니다.");
-        }
-
-        const { data } = supabase.storage
-          .from("project-images")
-          .getPublicUrl(filePath);
-
-        finalImageUrl = data.publicUrl;
+        formData.append("imageFile", imageFile);
+      }
+      if (imageUrl.trim() !== "") {
+        formData.append("existingImageUrl", imageUrl.trim());
       }
 
       if (mode === "edit" && project) {
         const res = await fetch(`/api/admin/projects/${project.id}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: name.trim(),
-            description: description.trim(),
-            startDate: startDate?.toISOString().split('T')[0],
-            endDate: endDate?.toISOString().split('T')[0] ?? null,
-            status,
-            imageUrl: finalImageUrl,
-          }),
+          body: formData,
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
@@ -174,15 +149,7 @@ export function ProjectFormModal({
       } else if (mode === "add") {
         const res = await fetch("/api/admin/projects", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: name.trim(),
-            description: description.trim(),
-            startDate: startDate?.toISOString().split('T')[0],
-            endDate: endDate?.toISOString().split('T')[0] ?? null,
-            status,
-            imageUrl: finalImageUrl,
-          }),
+          body: formData,
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
