@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { Header } from './components/header';
 import { HeroSection } from './components/hero-section';
 import { ProjectsSection } from './components/projects-section';
@@ -10,12 +11,14 @@ import { PROJECTS } from '@/data/projects';
 
 export default async function App() {
   const projects = await fetchProjectsFromSupabase(PROJECTS);
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.get("admin")?.value === "1";
 
   return (
     <div className="min-h-screen">
-      <Header />
+      <Header isAdmin={isAdmin} />
       <HeroSection />
-      <ProjectsSection initialProjects={projects} />
+      <ProjectsSection initialProjects={projects} isAdmin={isAdmin} />
       <RoadmapSection />
       <SocialSection />
       <ContactSection />
