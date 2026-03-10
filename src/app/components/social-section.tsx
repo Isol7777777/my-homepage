@@ -1,18 +1,17 @@
 "use client";
 
 import { Instagram, Youtube } from 'lucide-react';
-import { useState } from 'react';
 
 const socialLinks = [
   {
     name: "Instagram",
-    url: "#",
+    url: "https://www.instagram.com/isol7_yes/",
     icon: Instagram,
     color: "#E4405F"
   },
   {
     name: "X",
-    url: "#",
+    url: "https://x.com/isol7_yes",
     icon: ({ className }: { className?: string }) => (
       <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -22,7 +21,7 @@ const socialLinks = [
   },
   {
     name: "Naver",
-    url: "#",
+    url: "https://blog.naver.com/isla7777",
     icon: ({ className }: { className?: string }) => (
       <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M16.273 12.845 7.376 0H0v24h7.726l8.898-12.845L24 24V0h-7.727z"/>
@@ -32,27 +31,13 @@ const socialLinks = [
   },
   {
     name: "YouTube",
-    url: "#",
+    url: "https://www.youtube.com/@isol7-yes",
     icon: Youtube,
     color: "#FF0000"
   }
 ];
 
 export function SocialSection() {
-  const [clickedIcons, setClickedIcons] = useState<Set<string>>(new Set());
-
-  const handleClick = (name: string) => {
-    setClickedIcons(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(name)) {
-        newSet.delete(name);
-      } else {
-        newSet.add(name);
-      }
-      return newSet;
-    });
-  };
-
   return (
     <section className="py-20 px-4">
       <div className="max-w-6xl mx-auto">
@@ -65,20 +50,29 @@ export function SocialSection() {
         <div className="flex justify-center gap-6 flex-wrap">
           {socialLinks.map((social) => {
             const Icon = social.icon;
-            const isClicked = clickedIcons.has(social.name);
             return (
-              <button
+              <a
                 key={social.name}
-                onClick={() => handleClick(social.name)}
-                className="group border-4 border-foreground rounded-full p-6 hover:shadow-xl transition-all duration-200"
+                href={social.url}
+                target="_blank"             // 새 탭에서 열기
+                rel="noopener noreferrer"  // 보안 설정
+                className="group border-4 border-foreground rounded-full p-6 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2"
                 style={{
-                  backgroundColor: isClicked ? social.color : '#ffffff',
-                  color: isClicked ? '#ffffff' : social.color
+                  backgroundColor: '#ffffff',
+                  color: social.color
                 }}
-                aria-label={social.name}
+                // 마우스 올렸을 때 색상이 반전되도록 CSS 클래스 활용 추천
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = social.color;
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                  e.currentTarget.style.color = social.color;
+                }}
               >
                 <Icon className="w-8 h-8 transition-colors duration-200" />
-              </button>
+              </a>
             );
           })}
         </div>

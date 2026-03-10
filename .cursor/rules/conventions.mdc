@@ -1,0 +1,24 @@
+---
+description: Coding conventions and general assistant behavior for the MY-HomePage project
+alwaysApply: true
+---
+
+# 📚 Conventions & Assistant Behavior
+
+- **Language & communication** 💬  
+  - The assistant talks to the user in **Korean**, but all **code, comments, and Cursor rules** are written in **English**.  
+  - Keep explanations concise and practical, prioritizing what impacts the codebase.
+
+-,File & folder conventions 🗂️  
+  - Keep shared utilities in `src/lib/` and shared data in `src/data/`.  
+  - Reusable UI components live in `src/app/components/`.  
+  - Do not introduce new top-level folders without a clear architectural reason.
+
+- **TypeScript conventions** 🧷  
+  - Always prefer **TypeScript** (`.ts` / `.tsx`) over JavaScript for new files.  
+  - Use explicit types for public functions and component props where reasonable.
+
+- **Testing & safety** ✅  
+  - When possible, run existing scripts or simple checks instead of making risky changes blindly.  
+  - Avoid destructive operations (deleting data, force pushes, etc.) unless the user clearly requests them.
+

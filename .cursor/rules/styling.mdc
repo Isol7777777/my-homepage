@@ -1,0 +1,24 @@
+---
+description: Styling and visual design rules for the MY-HomePage project
+alwaysApply: true
+---
+
+# 🎨 Styling Rules
+
+- **Tailwind usage** 💠  
+  - Use Tailwind utility classes as the **primary styling method**.  
+  - Prefer semantic tokens (`bg-primary`, `text-foreground`) over arbitrary values (`bg-[#000]`).
+
+- **CSS Variables & Color Format (CRITICAL)** 🌈  
+  - All core colors must be defined in `src/styles/theme.css`.
+  - **Color format must be raw HSL numbers** (e.g., `--primary: 150 100% 28%;`) WITHOUT the `hsl()` function. 
+  - This allows Tailwind to handle opacity using `hsl(var(--primary) / <alpha-value>)`.
+  - Reference these in `tailwind.config.ts` as `hsl(var(--primary))`.
+
+- **Consistency** 📏  
+  - Use `--font-size` for base scaling and `--text-xl`, `--text-lg` for typography scales.
+  - Maintain the 'Clean & Vivid' concept: high contrast, vibrant accents, and generous whitespace.
+
+- **Dark mode** 🌙  
+  - Use the `.dark` class in `theme.css` to override variables. 
+  - Ensure all components look 'Vivid' even in dark mode (don't make it too dull).

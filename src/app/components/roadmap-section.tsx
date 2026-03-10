@@ -1,59 +1,119 @@
-import { CheckCircle2, Circle } from 'lucide-react';
+"use client";
 
-const roadmapItems = [
-  {
-    year: "2020",
-    title: "디자인 여정의 시작",
-    description: "홍익대학교 시각디자인학과 입학, 디자인의 기초를 다지다",
-    completed: true
-  },
-  {
-    year: "2021",
-    title: "첫 프리랜스 프로젝트",
-    description: "스타트업 브랜딩 및 웹 디자인 프로젝트 수행, 실무 경험 축적",
-    completed: true
-  },
-  {
-    year: "2022",
-    title: "UX/UI 전문가로의 성장",
-    description: "네이버 인턴십 합격, 대규모 서비스 디자인 경험",
-    completed: true
-  },
-  {
-    year: "2023",
-    title: "주니어 디자이너 입사",
-    description: "IT 기업 정규직 입사, 팀 프로젝트 리드 경험",
-    completed: true
-  },
-  {
-    year: "2024",
-    title: "포트폴리오 확장",
-    description: "다양한 산업군 프로젝트 수행, 수상 경력 3회",
-    completed: true
-  },
-  {
-    year: "2025",
-    title: "시니어 디자이너로 도약",
-    description: "팀 리더 승진, 디자인 시스템 구축 프로젝트 진행 중",
-    completed: false
-  },
-  {
-    year: "2026",
-    title: "글로벌 진출 목표",
-    description: "해외 프로젝트 참여 및 국제 디자인 컨퍼런스 발표 계획",
-    completed: false
+import { CheckCircle2, Circle, MoreVertical, Plus } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import type { RoadmapItem } from "@/data/roadmap";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/app/components/ui/alert-dialog";
+import { RoadmapFormModal } from "./roadmap/RoadmapFormModal";
+
+interface RoadmapSectionProps {
+  initialItems: RoadmapItem[];
+  isAdmin?: boolean;
+}
+
+export function RoadmapSection({ initialItems, isAdmin = false }: RoadmapSectionProps) {
+  const [items, setItems] = useState<RoadmapItem[]>(initialItems);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  useEffect(() => {
+    setItems(initialItems);
+  }, [initialItems]);
+
+  const toggleMenu = (id: number) => {
+    setOpenMenuId(openMenuId === id ? null : id);
+  };
+
+  function handleAddSuccess(newItem: RoadmapItem) {
+    setItems((prev) => [newItem, ...prev]);
+    setAddModalOpen(false);
   }
-];
 
-export function RoadmapSection() {
+  function handleEditSuccess(updated: RoadmapItem) {
+    setItems((prev) => prev.map((it) => (it.id === updated.id ? updated : it)));
+    setEditId(null);
+  }
+
+  async function handleConfirmDelete() {
+    if (deleteId == null) return;
+    try {
+      const res = await fetch(`/api/admin/roadmap/${deleteId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("삭제에 실패했습니다.");
+      setItems((prev) => prev.filter((it) => it.id !== deleteId));
+      setDeleteId(null);
+      setOpenMenuId(null);
+    } catch {
+      setDeleteId(null);
+    }
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const roadmapItems = items.map((it) => {
+    const hasEnd = !!it.endDate;
+    const end = it.endDate ? new Date(it.endDate) : null;
+    if (end) end.setHours(0, 0, 0, 0);
+
+    const completed = hasEnd && end! < today;
+
+    const startLabel = it.startDate
+      ? format(new Date(it.startDate), "yyyy.MM")
+      : "";
+    const endLabel = it.endDate
+      ? format(new Date(it.endDate), "yyyy.MM")
+      : "";
+
+    const period =
+      startLabel && endLabel
+        ? `${startLabel} - ${endLabel}`
+        : startLabel
+        ? `${startLabel} -`
+        : "";
+
+    return {
+      id: it.id,
+      period,
+      title: it.title,
+      description: it.description,
+      completed,
+    };
+  });
   return (
     <section className="py-20 px-4 bg-muted">
       <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16">
+        <div className="text-center mb-8">
           <h2 className="text-5xl md:text-6xl mb-4 inline-block border-b-4 border-secondary pb-2">
             나의 로드맵
           </h2>
         </div>
+
+        {isAdmin && (
+          <div className="mb-8 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setAddModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg border-2 border-foreground bg-card px-4 py-2 text-sm font-semibold hover:bg-secondary"
+            >
+              <Plus className="w-4 h-4" />
+              새 로드맵 항목 추가
+            </button>
+          </div>
+        )}
 
         <div className="relative">
           {/* Timeline vertical line */}
@@ -62,7 +122,7 @@ export function RoadmapSection() {
           <div className="space-y-12">
             {roadmapItems.map((item, index) => (
               <div
-                key={item.year}
+                key={item.id}
                 className={`relative flex flex-col md:flex-row gap-8 ${
                   index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
                 }`}
@@ -84,12 +144,12 @@ export function RoadmapSection() {
                     }`}
                   >
                     <div className="flex items-center gap-4 mb-3">
-                      <span className={`text-3xl px-4 py-1 rounded-lg border-2 border-foreground ${
+                      <span className={`text-sm md:text-base px-4 py-1 rounded-lg border-2 border-foreground ${
                         item.completed 
                           ? 'bg-primary text-primary-foreground' 
                           : 'bg-muted text-muted-foreground'
                       }`}>
-                        {item.year}
+                        {item.period}
                       </span>
                       {!item.completed && (
                         <span className="px-3 py-1 text-sm bg-accent text-accent-foreground border-2 border-foreground rounded-full">
@@ -98,9 +158,47 @@ export function RoadmapSection() {
                       )}
                     </div>
                     
-                    <h3 className="text-2xl mb-2">
-                      {item.title}
-                    </h3>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="text-2xl">
+                        {item.title}
+                      </h3>
+                      {isAdmin && (
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => toggleMenu(item.id)}
+                            className="p-1 rounded-full border-2 border-foreground bg-card hover:scale-110 transition-transform"
+                            aria-label="로드맵 메뉴"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          {openMenuId === item.id && (
+                            <div className="absolute right-0 mt-2 min-w-[140px] rounded-lg border-2 border-foreground bg-background shadow-xl z-20 overflow-hidden">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditId(item.id);
+                                  setOpenMenuId(null);
+                                }}
+                                className="block w-full px-4 py-2 text-left text-sm hover:bg-primary hover:text-primary-foreground"
+                              >
+                                편집(Edit)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDeleteId(item.id);
+                                  setOpenMenuId(null);
+                                }}
+                                className="block w-full px-4 py-2 text-left text-sm border-t border-foreground hover:bg-destructive hover:text-destructive-foreground"
+                              >
+                                삭제(Delete)
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                     
                     <p className="text-muted-foreground leading-relaxed">
                       {item.description}
@@ -115,6 +213,43 @@ export function RoadmapSection() {
           </div>
         </div>
       </div>
+      {isAdmin && (
+        <>
+          <RoadmapFormModal
+            open={addModalOpen || editId != null}
+            onOpenChange={(open) => {
+              if (!open) {
+                setAddModalOpen(false);
+                setEditId(null);
+              }
+            }}
+            mode={editId != null ? "edit" : "add"}
+            item={editId != null ? items.find((it) => it.id === editId) ?? null : null}
+            onSuccess={(item) =>
+              editId != null ? handleEditSuccess(item) : handleAddSuccess(item)
+            }
+          />
+          <AlertDialog open={deleteId != null} onOpenChange={(open) => !open && setDeleteId(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>삭제 확인</AlertDialogTitle>
+                <AlertDialogDescription>
+                  선택한 로드맵 항목을 정말로 삭제하시겠습니까?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>취소</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleConfirmDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  삭제
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
     </section>
   );
 }

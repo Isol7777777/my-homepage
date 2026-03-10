@@ -4,6 +4,8 @@ import { Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { useState } from 'react';
+import emailjs from '@emailjs/browser';
+import toast, { Toaster } from 'react-hot-toast';
 
 export function ContactSection() {
   const [formData, setFormData] = useState({
@@ -11,17 +13,42 @@ export function ContactSection() {
     email: '',
     message: ''
   });
+  const [isSending, setIsSending] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    // mailto 링크 생성
-    const subject = encodeURIComponent(`${formData.name}님의 문의`);
-    const body = encodeURIComponent(
-      `이름: ${formData.name}\n이메일: ${formData.email}\n\n메시지:\n${formData.message}`
-    );
-    
-    window.location.href = `mailto:your-email@example.com?subject=${subject}&body=${body}`;
+    setIsSending(true);
+
+    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || !templateId || !publicKey) {
+      toast.error("환경 변수 설정 확인이 필요합니다.");
+      setIsSending(false);
+      return;
+    }
+
+    // 템플릿 변수와 formData를 직접 매핑
+    const templateParams = {
+      name: formData.name,
+      email: formData.email,
+      message: formData.message,
+      time: new Date().toLocaleString(),
+    };
+
+    try {
+      await emailjs.send(serviceId, templateId, templateParams, publicKey);
+      
+      toast.success("메일이 성공적으로 발송되었습니다!");
+      setFormData({ name: "", email: "", message: "" });
+    } catch (error) {
+      // 에러 내용을 더 자세히 출력하도록 변경
+      console.error("EmailJS 상세 에러:", error);
+      toast.error("메일 발송에 실패했습니다.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -41,11 +68,12 @@ export function ContactSection() {
               </label>
               <Input
                 id="name"
+                name="name"
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full border-2 border-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full rounded-lg border-2 border-foreground bg-background px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="홍길동"
               />
             </div>
@@ -56,11 +84,12 @@ export function ContactSection() {
               </label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full border-2 border-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full rounded-lg border-2 border-foreground bg-background px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="example@email.com"
               />
             </div>
@@ -71,25 +100,37 @@ export function ContactSection() {
               </label>
               <textarea
                 id="message"
+                name="message"
                 required
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                className="w-full border-2 border-foreground rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary min-h-[150px] resize-y"
+                className="w-full min-h-[150px] resize-y rounded-lg border-2 border-foreground bg-background px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="메시지를 입력해주세요..."
               />
             </div>
 
+            {/* Hidden field for time, matching EmailJS template variable */}
+            <input type="hidden" name="time" value={new Date().toLocaleString()} />
+
             <Button
               type="submit"
               size="lg"
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 border-4 border-foreground rounded-xl px-8 py-6 text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              className="w-full rounded-xl border-4 border-foreground bg-primary px-8 py-6 text-lg shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl disabled:opacity-50"
+              disabled={isSending}
             >
-              <Send className="w-5 h-5 mr-2" />
-              메일 보내기
+              {isSending ? (
+                "전송 중..."
+              ) : (
+                <>
+                  <Send className="mr-2 h-5 w-5" />
+                  메일 보내기
+                </>
+              )}
             </Button>
           </form>
         </div>
       </div>
+      <Toaster />
     </section>
   );
 }

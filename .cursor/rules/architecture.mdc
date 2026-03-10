@@ -1,0 +1,27 @@
+---
+description: High-level architecture rules for the MY-HomePage project
+alwaysApply: true
+---
+
+# 🏗️ Architecture Rules
+
+- **App structure** 🧩  
+  - Use **Next.js App Router** with `app/` as the primary entry point.  
+  - Keep `layout.tsx` minimal: global CSS, fonts, metadata, and providers only.
+
+- **Data flow & Supabase** 🗄️  
+  - Prefer **server-side data fetching** for Supabase (RLS-friendly, secure) using a dedicated server client.  
+  - Use a shared Supabase utility (e.g. `src/lib/supabaseClient.ts`) for both client and server clients instead of duplicating setup.
+
+- **Components** 🧱  
+  - Separate **presentational components** (UI only) from **data/logic components** where reasonable.  
+  - Favor small, focused components in `src/app/components/` over very large monoliths.
+
+- **Styling system** 🎨  
+  - Tailwind CSS v3 is the **single source of truth** for utility classes.  
+  - Design tokens (colors, radius, etc.) must come from CSS variables defined in `theme.css` and consumed via `tailwind.config.ts`.
+
+- **Performance & DX** ⚡  
+  - Avoid unnecessary client components (`"use client"`) when a server component is enough.  
+  - Prefer memoization and simple props over deep prop drilling and heavy global state.
+

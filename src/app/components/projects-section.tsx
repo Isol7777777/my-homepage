@@ -11,35 +11,62 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { format } from "date-fns";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/app/components/ui/alert-dialog";
+import { ProjectFormModal } from "./ProjectFormModal";
+import { ProjectMemoModal } from "./ProjectMemoModal";
 import type { Project } from "@/data/projects";
 
 function toDisplayProjects(projects: Project[]) {
-  return projects.map((p) => ({
-    id: p.id,
-    title: p.name,
-    description: p.description,
-    image: p.imageUrl ?? null,
-    status: p.status,
-    statusColor:
-      p.status === "완료"
-        ? "primary"
-        : p.status === "진행중"
-        ? "accent"
-        : "secondary",
-    date: p.period,
-  }));
+  return projects.map((p) => {
+    const formattedStartDate = format(new Date(p.startDate), "yyyy.MM");
+    const formattedEndDate = p.endDate ? format(new Date(p.endDate), "yyyy.MM") : "";
+
+    return {
+      id: p.id,
+      title: p.name,
+      description: p.description,
+      image: p.imageUrl ?? null,
+      status: p.status,
+      statusColor:
+        p.status === "완료"
+          ? "primary"
+          : p.status === "진행중"
+          ? "accent"
+          : "secondary",
+      date: formattedEndDate ? `${formattedStartDate} - ${formattedEndDate}` : `${formattedStartDate} -`,
+    };
+  });
 }
 
 interface ProjectsSectionProps {
   initialProjects: Project[];
+  isAdmin?: boolean;
 }
 
-export function ProjectsSection({ initialProjects }: ProjectsSectionProps) {
+export function ProjectsSection({ initialProjects, isAdmin = false }: ProjectsSectionProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const [direction, setDirection] = useState(0);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [itemsPerPage, setItemsPerPage] = useState(3);
-  const [projects, setProjects] = useState(() => toDisplayProjects(initialProjects));
+  const [localProjects, setLocalProjects] = useState<Project[]>(initialProjects);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editProjectId, setEditProjectId] = useState<number | null>(null);
+  const [memoProjectId, setMemoProjectId] = useState<number | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+
+  useEffect(() => {
+    setLocalProjects(initialProjects);
+  }, [initialProjects]);
 
   // Determine items per page based on screen size
   useEffect(() => {
@@ -62,8 +89,46 @@ export function ProjectsSection({ initialProjects }: ProjectsSectionProps) {
     setOpenMenuId(openMenuId === id ? null : id);
   };
 
-  // Include the "Add Project" card in the total
-  const allItems = [...projects, { id: "add", isAddButton: true }];
+  function handleAddSuccess(newProject: Project) {
+    setLocalProjects((prev) => [...prev, newProject]);
+    setAddModalOpen(false);
+  }
+
+  function handleEditSuccess(updated: Project) {
+    setLocalProjects((prev) =>
+      prev.map((p) => (p.id === updated.id ? updated : p))
+    );
+    setEditProjectId(null);
+  }
+
+  function handleMemoSuccess(updated: Project) {
+    setLocalProjects((prev) =>
+      prev.map((p) =>
+        p.id === updated.id ? { ...p, adminNote: updated.adminNote } : p
+      )
+    );
+    setMemoProjectId(null);
+  }
+
+  async function handleConfirmDelete() {
+    if (deleteConfirmId == null) return;
+    try {
+      const res = await fetch(`/api/admin/projects/${deleteConfirmId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("삭제에 실패했습니다.");
+      setLocalProjects((prev) => prev.filter((p) => p.id !== deleteConfirmId));
+      setDeleteConfirmId(null);
+      setOpenMenuId(null);
+    } catch {
+      setDeleteConfirmId(null);
+    }
+  }
+
+  const displayItems = toDisplayProjects(localProjects);
+  const allItems = isAdmin
+    ? [...displayItems, { id: "add", isAddButton: true }]
+    : displayItems;
   const totalPages = Math.ceil(allItems.length / itemsPerPage);
   const startIndex = currentPage * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -126,6 +191,8 @@ export function ProjectsSection({ initialProjects }: ProjectsSectionProps) {
                   return (
                     <button
                       key="add"
+                      type="button"
+                      onClick={() => setAddModalOpen(true)}
                       className="bg-card border-4 border-dashed border-foreground rounded-2xl hover:shadow-2xl transition-all duration-300 hover:scale-105 h-full min-h-[400px] flex flex-col items-center justify-center gap-4 group"
                     >
                       <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:scale-110 transition-all">
@@ -180,26 +247,52 @@ export function ProjectsSection({ initialProjects }: ProjectsSectionProps) {
                       </div>
                     </div>
 
-                    {/* Three-dot menu button */}
-                    <button
-                      onClick={() => toggleMenu(item.id)}
-                      className="absolute top-4 right-4 p-2 bg-card rounded-full border-2 border-foreground
-                        shadow-md hover:scale-110 transition-transform z-10"
-                      aria-label="Menu"
-                    >
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
-
-                    {/* Dropdown menu */}
-                    {openMenuId === item.id && (
-                      <div className="absolute top-16 right-4 bg-background border-4 border-foreground rounded-lg shadow-xl overflow-hidden z-20 min-w-[120px]">
-                        <button className="w-full px-4 py-3 text-left hover:bg-primary hover:text-primary-foreground transition-colors">
-                          Edit
+                    {/* Kebab menu: Admin only — never shown to guests */}
+                    {isAdmin && (
+                      <>
+                        <button
+                          onClick={() => toggleMenu(item.id)}
+                          className="absolute top-4 right-4 p-2 bg-card rounded-full border-2 border-foreground
+                            shadow-md hover:scale-110 transition-transform z-10"
+                          aria-label="메뉴"
+                        >
+                          <MoreVertical className="w-5 h-5" />
                         </button>
-                        <button className="w-full px-4 py-3 text-left hover:bg-primary hover:text-primary-foreground transition-colors border-t-2 border-foreground">
-                          Memo
-                        </button>
-                      </div>
+                        {openMenuId === item.id && (
+                          <div className="absolute top-16 right-4 bg-background border-4 border-foreground rounded-lg shadow-xl overflow-hidden z-20 min-w-[120px]">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditProjectId(item.id);
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full px-4 py-3 text-left hover:bg-primary hover:text-primary-foreground transition-colors"
+                            >
+                              편집(Edit)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDeleteConfirmId(item.id);
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full px-4 py-3 text-left hover:bg-destructive hover:text-destructive-foreground transition-colors border-t-2 border-foreground"
+                            >
+                              삭제(Delete)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMemoProjectId(item.id);
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full px-4 py-3 text-left hover:bg-primary hover:text-primary-foreground transition-colors border-t-2 border-foreground"
+                            >
+                              메모(Admin Note)
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 );
@@ -256,6 +349,46 @@ export function ProjectsSection({ initialProjects }: ProjectsSectionProps) {
           </div>
         )}
       </div>
+
+      {/* Add / Edit modal */}
+      {isAdmin && (
+        <>
+          <ProjectFormModal
+            open={addModalOpen || editProjectId != null}
+            onOpenChange={(open) => {
+              if (!open) {
+                setAddModalOpen(false);
+                setEditProjectId(null);
+              }
+            }}
+            mode={editProjectId != null ? "edit" : "add"}
+            project={editProjectId != null ? localProjects.find((p) => p.id === editProjectId) ?? null : null}
+            onSuccess={(project) => (editProjectId != null ? handleEditSuccess(project) : handleAddSuccess(project))}
+          />
+          <ProjectMemoModal
+            open={memoProjectId != null}
+            onOpenChange={(open) => {
+              if (!open) setMemoProjectId(null);
+            }}
+            project={memoProjectId != null ? localProjects.find((p) => p.id === memoProjectId) ?? null : null}
+            onSuccess={handleMemoSuccess}
+          />
+          <AlertDialog open={deleteConfirmId != null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>삭제 확인</AlertDialogTitle>
+                <AlertDialogDescription>정말로 삭제하시겠습니까?</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>취소</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  삭제
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
     </section>
   );
 }

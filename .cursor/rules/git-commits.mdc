@@ -1,0 +1,29 @@
+---
+description: Git auto-commit behavior for this project
+alwaysApply: true
+---
+
+# 🔁 Git Auto-Commit Rules (MY-HomePage)
+
+- **Scope** ✨  
+  - Whenever the AI **modifies, adds, or deletes code files**, it should create **automatic Git commits** without asking for additional confirmation.
+
+- **Commit grouping** 📦  
+  - Group changes into **logical units** (feature, bug fix, config change, etc.), *not* every keystroke.  
+  - Prefer smaller, focused commits over huge mixed ones.
+
+- **Safety & exclusions** 🔐  
+  - Never commit secrets: `.env*`, passwords, tokens, private keys, or any credential-like files.  
+  - Never commit build artifacts: `.next/`, `node_modules/`, logs, temporary caches, or lockfiles created by tools unless explicitly requested.
+
+- **Commit messages** 📝  
+  - Messages should clearly state **why** the change was made (the intent), for example:  
+    - `fix: avoid tailwind v3 preflight conflict`  
+    - `feat: add Supabase server-side project fetch`
+
+- **Remote pushes** 🚫➡️☁️  
+  - **Do not run `git push`** automatically. Only push when the user explicitly asks.
+
+- **Error handling** ⚠️  
+  - If `git` is not installed or a Git command fails, briefly report the error to the user and provide a short summary of the pending changes instead of committing.
+

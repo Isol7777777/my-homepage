@@ -1,0 +1,23 @@
+---
+description: Automatically manage `npm run dev` (start/restart) after code changes
+alwaysApply: true
+---
+
+# 🚀 Auto `npm run dev` Management Rules
+
+- **Scope** ⚙️  
+  - Whenever the AI **modifies, adds, or deletes code files**, it may manage the `npm run dev` process **without asking** the user every time.
+
+- **Starting the dev server** ▶️  
+  - If the dev server is **not running**, the AI should automatically run `npm run dev` in the background in the project root.
+
+- **Restarting the dev server** 🔄  
+  - The AI is allowed to **stop and restart** `npm run dev` when:
+    - Dependencies or tooling are changed (`package.json`, `postcss.config`, `tailwind.config`, etc.).  
+    - Dev server is in a bad state (e.g., build errors that persist until restart).  
+  - Avoid overly frequent restarts: prefer restarting **after a related batch of changes** rather than on every tiny edit.
+
+- **Error handling** ⚠️  
+  - If `npm run dev` fails or crashes, the AI should:
+    - Capture the key error message(s).  
+    - Briefly explain to the user what went wrong and (if possible) how it was addressed or how to proceed.
