@@ -66,7 +66,7 @@ export function ProjectMemoModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>관리자 메모 (Admin Note)</DialogTitle>
         </DialogHeader>

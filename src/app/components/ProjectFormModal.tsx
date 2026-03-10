@@ -79,8 +79,11 @@ export function ProjectFormModal({
       if (mode === "edit" && project) {
         setName(project.name);
         setDescription(project.description);
-        setStartDate(new Date(project.startDate));
-        setEndDate(project.endDate ? new Date(project.endDate) : undefined);
+        const start = new Date(project.startDate);
+        const end = project.endDate ? new Date(project.endDate) : null;
+
+        setStartDate(!isNaN(start.getTime()) ? start : undefined);
+        setEndDate(end && !isNaN(end.getTime()) ? end : undefined);
         setStatus(project.status);
         setImageUrl(project.imageUrl ?? "");
         setImageFile(null);

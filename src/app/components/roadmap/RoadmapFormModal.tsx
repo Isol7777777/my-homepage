@@ -107,7 +107,7 @@ export function RoadmapFormModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>
             {mode === "add" ? "새 로드맵 항목 추가" : "로드맵 항목 편집"}
