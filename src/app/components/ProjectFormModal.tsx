@@ -19,28 +19,37 @@ import { getSupabaseClient } from "@/lib/supabaseClient";
 
 type ProjectStatus = Project["status"];
 
-/** API 응답 행을 Project 타입으로 변환 */
+/** API 응답 행을 Project 타입으로 변환 (camelCase/스네이크케이스 모두 허용) */
 function apiRowToProject(row: {
   id: number;
   name: string;
   description: string;
   status: string;
   memo?: string;
-  adminNote?: string;
+  adminNote?: string | null;
+  admin_note?: string | null;
   imageUrl?: string | null;
-  start_date: string;
+  image_url?: string | null;
+  startDate?: string;
+  start_date?: string;
+  endDate?: string | null;
   end_date?: string | null;
 }): Project {
+  const startRaw = row.startDate ?? row.start_date;
+  const endRaw = row.endDate ?? row.end_date ?? undefined;
+  const imageRaw = row.imageUrl ?? row.image_url ?? undefined;
+  const adminNoteRaw = row.adminNote ?? row.admin_note ?? undefined;
+
   return {
     id: row.id,
     name: row.name,
     description: row.description,
-    startDate: row.start_date,
-    endDate: row.end_date ?? undefined,
+    startDate: startRaw ?? "",
+    endDate: endRaw ?? undefined,
     status: row.status as ProjectStatus,
     memo: row.memo,
-    adminNote: row.adminNote,
-    imageUrl: row.imageUrl ?? undefined,
+    adminNote: adminNoteRaw ?? undefined,
+    imageUrl: imageRaw ?? undefined,
   };
 }
 
