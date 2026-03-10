@@ -28,8 +28,14 @@ import type { Project } from "@/data/projects";
 
 function toDisplayProjects(projects: Project[]) {
   return projects.map((p) => {
-    const formattedStartDate = format(new Date(p.startDate), "yyyy.MM");
-    const formattedEndDate = p.endDate ? format(new Date(p.endDate), "yyyy.MM") : "";
+    const start = new Date(p.startDate);
+    const end = p.endDate ? new Date(p.endDate) : null;
+
+    const formattedStartDate = !isNaN(start.getTime())
+      ? format(start, "yyyy.MM")
+      : "";
+    const formattedEndDate =
+      end && !isNaN(end.getTime()) ? format(end, "yyyy.MM") : "";
 
     return {
       id: p.id,

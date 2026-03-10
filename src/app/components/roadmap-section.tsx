@@ -67,16 +67,23 @@ export function RoadmapSection({ initialItems, isAdmin = false }: RoadmapSection
   const roadmapItems = items.map((it) => {
     const hasEnd = !!it.endDate;
     const end = it.endDate ? new Date(it.endDate) : null;
-    if (end) end.setHours(0, 0, 0, 0);
+    if (end && !isNaN(end.getTime())) {
+      end.setHours(0, 0, 0, 0);
+    }
 
     const completed = hasEnd && end! < today;
 
-    const startLabel = it.startDate
-      ? format(new Date(it.startDate), "yyyy.MM")
-      : "";
-    const endLabel = it.endDate
-      ? format(new Date(it.endDate), "yyyy.MM")
-      : "";
+    const startDateObj = it.startDate ? new Date(it.startDate) : null;
+    const endDateObj = it.endDate ? new Date(it.endDate) : null;
+
+    const startLabel =
+      startDateObj && !isNaN(startDateObj.getTime())
+        ? format(startDateObj, "yyyy.MM")
+        : "";
+    const endLabel =
+      endDateObj && !isNaN(endDateObj.getTime())
+        ? format(endDateObj, "yyyy.MM")
+        : "";
 
     const period =
       startLabel && endLabel

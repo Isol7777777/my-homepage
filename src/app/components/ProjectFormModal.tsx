@@ -189,7 +189,7 @@ export function ProjectFormModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>
             {mode === "add" ? "새 프로젝트 추가" : "프로젝트 편집"}
